@@ -1,0 +1,16 @@
+# デプロイに要らないものを送らない。
+# Free プランは 24 時間あたり 5,000 ファイルが上限で、一度触れると
+# .vercelignore を直しても 24 時間通らなくなる(フリート実測)。
+node_modules
+.next
+out
+coverage
+.loop
+.git
+logs
+tools
+harness
+schema
+scripts
+*.md
+!README.md
