@@ -36,22 +36,23 @@ export interface ModelEntry {
  * バイト数の出所: Hugging Face の models API(`?blobs=true`)を 2026-08-29 に実測。
  * encoder と decoder_model_merged の 2 ファイルの合計で、
  * トークナイザ等の付随ファイル(数 MB)は含まない。
+ * **dtypeFor() が返す型の実ファイルと対応している** — 型を変えたらここも測り直す。
  */
 export const MODELS: readonly ModelEntry[] = [
   {
     id: "onnx-community/whisper-base",
     label: "whisper-base(既定)",
-    // webgpu: encoder fp32 82,468,078 + decoder_merged q4 123,602,419
-    // wasm:   encoder q8  23,201,314 + decoder_merged q8  53,693,315
-    bytes: { webgpu: 206_070_497, wasm: 76_894_629 },
+    // webgpu: encoder fp32 82,468,078 + decoder_merged q4   123,602,419
+    // wasm:   encoder q8   23,201,314 + decoder_merged fp16 104,727,818
+    bytes: { webgpu: 206_070_497, wasm: 127_929_132 },
     note: "日本語を実用的に拾える最小の段。まずこれで測る",
   },
   {
     id: "onnx-community/whisper-tiny",
     label: "whisper-tiny(軽い・粗い)",
-    // webgpu: encoder fp32 32,904,992 + decoder_merged q4 86,713,702
-    // wasm:   encoder q8  10,124,990 + decoder_merged q8  30,719,241
-    bytes: { webgpu: 119_618_694, wasm: 40_844_231 },
+    // webgpu: encoder fp32 32,904,992 + decoder_merged q4   86,713,702
+    // wasm:   encoder q8   10,124,990 + decoder_merged fp16 59,593,896
+    bytes: { webgpu: 119_618_694, wasm: 69_718_886 },
     note: "回線が細いとき用。日本語はかなり崩れるが、崩れ方を見るのも目的のうち",
   },
 ];
@@ -81,13 +82,29 @@ export const DEFAULT_MODEL_ID = MODELS[0].id;
  * WebGPU でもエンコーダは fp32 のままにする。fp16 のエンコーダには
  * 既知の精度問題があり(transformers.js issue #1590)、
  * **速さのために測定対象を歪めては本末転倒**だから。
- * WASM では q8 に落とす — 単スレッド退避で遅いぶん、量で稼ぐ。
+ *
+ * ■ WASM のデコーダを q8 にできない理由(loop_003 実ブラウザ実測)
+ *
+ * `decoder_model_merged` の **8 bit 系(q8 / int8 / uint8)が読み込めない**。
+ * ONNX Runtime 1.26.0-dev の QDQ 最適化が落ちる:
+ *
+ *     qdq_actions.cc:137 TransposeDQWeightsForMatMulNBits
+ *     Missing required scale: model.decoder.embed_tokens.weight_merged_0_scale
+ *
+ * エンコーダの q8 は通るので、これはデコーダ側だけの問題である。
+ * 実測(whisper-tiny / wasm): q8 と int8 と uint8 が失敗、
+ * fp16(11.9s)・bnb4(10.0s)・q4(10.3s)・fp32(19.7s)が成功。
+ * 通るもののうち**最も小さい fp16** を採る。
+ *
+ * これは単体テストでもビルドでも成果物検査でも出ない。
+ * **実ブラウザで動かして初めて出る故障**だった。
+ * ライブラリか実行系の版を上げるときは、ここを実測し直すこと。
  */
 export function dtypeFor(device: Device): DtypeChoice {
   if (device === "webgpu") {
     return { encoder_model: "fp32", decoder_model_merged: "q4" };
   }
-  return { encoder_model: "q8", decoder_model_merged: "q8" };
+  return { encoder_model: "q8", decoder_model_merged: "fp16" };
 }
 
 export function getModel(id: string): ModelEntry | undefined {

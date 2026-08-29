@@ -142,17 +142,17 @@ export default function Listener({ onTranscript }: Props) {
           <p className="lede">
             {model?.note}
             <br />
-            実行系は
+            {"実行系は"}
             <strong>
               {device === null
                 ? "調べている…"
                 : threadingState(isCrossOriginIsolated(), device)}
             </strong>
-            。初回に落とす重みは
+            {"。初回に落とす重みは"}
             <strong>{size === null ? "—" : formatBytes(size)}</strong>
-            （二度目からはブラウザのキャッシュが効く）。
-            重みは Hugging Face から直接落ちてきて、
-            <strong>音声はどこへも出ない</strong>。
+            {"(二度目からはブラウザのキャッシュが効く)。重みは Hugging Face から直接落ちてきて、"}
+            <strong>{"音声はどこへも出ない"}</strong>
+            {"。"}
           </p>
           <button
             type="button"
@@ -184,7 +184,7 @@ export default function Listener({ onTranscript }: Props) {
           <button type="button" onClick={stopAndRecognize} className="recording">
             ● 録音中 {elapsed.toFixed(1)} 秒 — 押して止める
           </button>
-          <p className="lede">課題文を声に出して読む。読み終わったら止める。</p>
+          <p className="lede">{"課題文を声に出して読む。読み終わったら止める。"}</p>
         </>
       ) : null}
 

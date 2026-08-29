@@ -60,10 +60,18 @@ describe("モデルレジストリ", () => {
       encoder_model: "fp32",
       decoder_model_merged: "q4",
     });
+    // デコーダの 8 bit 系は ONNX Runtime 1.26.0-dev で読み込めない
+    // (loop_003 実ブラウザ実測)。通るもののうち最小の fp16 を採る
     expect(dtypeFor("wasm")).toEqual({
       encoder_model: "q8",
-      decoder_model_merged: "q8",
+      decoder_model_merged: "fp16",
     });
+    // 落ちる型に戻していないことを名指しで縛る
+    for (const d of DEVICES) {
+      expect(["q8", "int8", "uint8"]).not.toContain(
+        dtypeFor(d).decoder_model_merged,
+      );
+    }
     for (const d of DEVICES) {
       expect(JSON.stringify(dtypeFor(d))).toBe(JSON.stringify(dtypeFor(d)));
     }
@@ -79,7 +87,7 @@ describe("モデルレジストリ", () => {
   });
 
   it("サイズを人が読める形にする", () => {
-    expect(formatBytes(76_894_629)).toBe("73 MB");
+    expect(formatBytes(127_929_132)).toBe("122 MB");
     expect(formatBytes(0)).toBe("0 MB");
   });
 });

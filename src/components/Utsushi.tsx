@@ -114,8 +114,7 @@ export default function Utsushi() {
     <>
       <h2>一 課題文をえらぶ</h2>
       <p className="lede">
-        いずれも青空文庫の新字新仮名の作品から、機械的に選び出した一節。
-        本文はコードに書き写しておらず、出典の当該位置と一致することを検査で固定している。
+        {"いずれも青空文庫の新字新仮名の作品から、機械的に選び出した一節。本文はコードに書き写しておらず、出典の当該位置と一致することを検査で固定している。"}
       </p>
       <select
         value={passageId}
@@ -143,8 +142,9 @@ export default function Utsushi() {
 
       <h2>二 声に出して読む</h2>
       <p className="lede">
-        認識はすべて<strong>この端末の中</strong>で走る。音声も認識結果も
-        どこへも送らない。マイクを使わずに、下の欄へ直接打ち込んでもよい。
+        {"認識はすべて"}
+        <strong>{"この端末の中"}</strong>
+        {"で走る。音声も認識結果もどこへも送らない。マイクを使わずに、下の欄へ直接打ち込んでもよい。"}
       </p>
       <Listener onTranscript={onTranscript} />
       <textarea
@@ -158,17 +158,17 @@ export default function Utsushi() {
       />
       {heard !== null ? (
         <p className="lede">
-          {heard.engine} が {heard.durationSec.toFixed(1)} 秒の音声から書いたもの。
-          手で直せば、直したものが測られる。
+          {`${heard.engine} が ${heard.durationSec.toFixed(1)} 秒の音声から書いたもの。手で直せば、直したものが測られる。`}
         </p>
       ) : null}
 
       {result === null ? (
         <p className="note">
-          文字を入れると、原文の上に差が描かれる。
+          {"文字を入れると、原文の上に差が描かれる。"}
           <br />
-          原文は<strong>先に画面に在る</strong>ので、どこがどう違ったかを厳密に測れる —
-          これがこのアプリの立っている土台で、だから認識器には原文を一切渡さない。
+          {"原文は"}
+          <strong>{"先に画面に在る"}</strong>
+          {"ので、どこがどう違ったかを厳密に測れる —— これがこのアプリの立っている土台で、だから認識器には原文を一切渡さない。"}
         </p>
       ) : (
         <>
@@ -216,23 +216,23 @@ export default function Utsushi() {
             <ul className="findings">
               {result.skips.map((s) => (
                 <li key={`s${s.origStart}`}>
-                  読み飛ばし {s.length} 字 — 「{s.text}」
+                  {`読み飛ばし ${s.length} 字 —— 「${s.text}」`}
                 </li>
               ))}
               {result.restarts.map((r) => (
                 <li key={`r${r.refAnchor}`}>
-                  言い直し — 「{r.inserted}」のあとに読み直している
+                  {`言い直し —— 「${r.inserted}」のあとに読み直している`}
                 </li>
               ))}
             </ul>
           ) : null}
 
           <p className="note">
-            二つの CER は<strong>同じ分母</strong>(読むよう求めた文字数)で割ってある。
-            表記ゆれ許容側は、読みを変えない変換(カタカナ→ひらがな・繰り返し記号の展開・
-            位取りを含む漢数字)で説明できる差を一致に数え直したもの。
-            <strong>許容側が厳密側より小さいとは限らない</strong> —
-            繰り返し記号の展開は、直前の一字の誤りを二字ぶんに広げるため。
+            {"二つの CER は"}
+            <strong>{"同じ分母"}</strong>
+            {"(読むよう求めた文字数)で割ってある。表記ゆれ許容側は、読みを変えない変換(カタカナ→ひらがな・繰り返し記号の展開・位取りを含む漢数字)で説明できる差を一致に数え直したもの。"}
+            <strong>{"許容側が厳密側より小さいとは限らない"}</strong>
+            {" —— 繰り返し記号の展開は、直前の一字の誤りを二字ぶんに広げるため。"}
           </p>
         </>
       )}

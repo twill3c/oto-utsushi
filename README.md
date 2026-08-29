@@ -51,8 +51,8 @@ npm run passages      # 課題文カタログを再選定(青空文庫コーパ�
 
 | | 初回に落ちる量(実測 2026-08-29) |
 |---|---|
-| whisper-base(既定) | WebGPU 206 MB ／ WebAssembly 73 MB |
-| whisper-tiny | WebGPU 114 MB ／ WebAssembly 39 MB |
+| whisper-base(既定) | WebGPU 206 MB ／ WebAssembly 122 MB |
+| whisper-tiny | WebGPU 114 MB ／ WebAssembly 66 MB |
 
 日本語特化の `kotoba-whisper-v2.2-ONNX` は実在し transformers.js にも対応しているが、
 large-v3 蒸留でエンコーダが大きく、最小の組み合わせでも **534 MB** ある。
@@ -62,13 +62,27 @@ large-v3 蒸留でエンコーダが大きく、最小の組み合わせでも *
 webpack が黙って 23.6 MB を複製していたのを loop_002 で見つけて外した
 （成果物 25.0 MB → 1.41 MB）。`npm run verify` の `bundle` 段が現物を検査する。
 
+WebAssembly 側のデコーダが 8 bit にできないのは、ONNX Runtime 1.26.0-dev の QDQ 最適化が
+`decoder_model_merged` の q8 / int8 / uint8 を読み込めないため（loop_003 実ブラウザ実測）。
+通るもののうち最小の fp16 を採っている。**この故障は単体テストにもビルドにも出なかった。**
+
+## 実ブラウザ検品
+
+```bash
+npm run speech    # 課題文を日本語 TTS で読ませて WAV を作る
+npm run browser   # Chromium で out/ を開き、疑似マイクから全経路を通す
+```
+
+マイク → 録音 → 16 kHz リサンプル → Whisper → アライメント → 計量 を一続きに走らせる。
+実測 2026-08-29（whisper-base / WebAssembly / 19.3 秒の合成音声）: 厳密 CER 45.5%。
+
+**この数字は品質ではない。** TTS は人の音読の代わりにならないし、SAPI の読み誤りが
+ASR の誤りに混ざる。見ているのは「経路が通ること」だけである。
+
 ## 状態
 
-loop_002 完了。課題文 24 篇、計り方とゲート、ブラウザ内 Whisper、録音 UI まで。
-
-**ただし推論そのものは実ブラウザでしか確かめられない。** 型・境界・取得先・成果物は
-テストが縛るが、「実際に日本語を聞き取るか」はこのリポジトリの射程外である。
-公開前に人が読み上げて確かめる段が要る。
+loop_003 完了。課題文 24 篇、計り方とゲート、ブラウザ内 Whisper、録音 UI、実ブラウザ検品まで。
+GitHub リポジトリと Vercel 公開はまだ。
 
 ## ライセンス
 
