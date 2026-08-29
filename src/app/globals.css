@@ -208,3 +208,54 @@ footer a:hover {
   color: var(--accent);
   text-decoration: underline;
 }
+
+.listener {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 0.9rem 1rem;
+  margin: 0.9rem 0;
+}
+
+.listener .lede {
+  margin: 0.6rem 0;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.field select {
+  flex: 1;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--paper);
+  background: var(--accent);
+  border: none;
+  border-radius: 4px;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.recording {
+  background: var(--del);
+}
+
+.error {
+  color: var(--accent);
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+}

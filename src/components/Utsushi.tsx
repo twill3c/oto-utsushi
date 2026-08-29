@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import Listener from "@/components/Listener";
 import { PASSAGES } from "@/core/catalog";
 import { measure } from "@/core/metrics";
 import { normalize } from "@/core/normalize";
@@ -80,13 +81,31 @@ function percent(value: number | null): string {
 export default function Utsushi() {
   const [passageId, setPassageId] = useState(PASSAGES[0].id);
   const [hypothesis, setHypothesis] = useState("");
+  const [heard, setHeard] = useState<{
+    durationSec: number;
+    engine: string;
+  } | null>(null);
+
+  // 認識結果は「打ち込み」と同じ入口へ入れる。計り方は一本しかない
+  const onTranscript = useCallback(
+    (text: string, durationSec: number, engine: string) => {
+      setHypothesis(text);
+      setHeard({ durationSec, engine });
+    },
+    [],
+  );
 
   const passage =
     PASSAGES.find((p) => p.id === passageId) ?? PASSAGES[0];
 
   const result = useMemo(
-    () => (hypothesis.trim() === "" ? null : measure(passage.text, hypothesis)),
-    [passage, hypothesis],
+    () =>
+      hypothesis.trim() === ""
+        ? null
+        : measure(passage.text, hypothesis, {
+            durationSec: heard?.durationSec ?? null,
+          }),
+    [passage, hypothesis, heard],
   );
 
   const refChars = normalize(passage.text).text.length;
@@ -122,17 +141,27 @@ export default function Utsushi() {
         </div>
       </div>
 
-      <h2>二 聞こえたとおりに写す</h2>
+      <h2>二 声に出して読む</h2>
       <p className="lede">
-        いまは手で打ち込む。ここへ<strong>ブラウザ内の音声認識</strong>が
-        書き込むようになるのが次の段で、比べ方はいま作ったものがそのまま使われる。
+        認識はすべて<strong>この端末の中</strong>で走る。音声も認識結果も
+        どこへも送らない。マイクを使わずに、下の欄へ直接打ち込んでもよい。
       </p>
+      <Listener onTranscript={onTranscript} />
       <textarea
         value={hypothesis}
-        onChange={(e) => setHypothesis(e.target.value)}
+        onChange={(e) => {
+          setHypothesis(e.target.value);
+          setHeard(null);
+        }}
         placeholder="認識結果、あるいは聞こえたとおりの文字列"
         aria-label="転写"
       />
+      {heard !== null ? (
+        <p className="lede">
+          {heard.engine} が {heard.durationSec.toFixed(1)} 秒の音声から書いたもの。
+          手で直せば、直したものが測られる。
+        </p>
+      ) : null}
 
       {result === null ? (
         <p className="note">
@@ -164,6 +193,12 @@ export default function Utsushi() {
               <dt>読み飛ばし</dt>
               <dd>{result.skips.length}</dd>
             </div>
+            {result.charsPerSecond !== null ? (
+              <div>
+                <dt>読速(字/秒)</dt>
+                <dd>{result.charsPerSecond.toFixed(1)}</dd>
+              </div>
+            ) : null}
           </dl>
           <div className="legend">
             <span>

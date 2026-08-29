@@ -46,8 +46,12 @@ runStep("test", "npx vitest run --coverage");
 
 if (!fast) {
   runStep("build", "npm run -s build");
+  // 成果物はソースではなく現物を見る(N-08 / HC-052)。
+  // build のあとでなければ意味がないので、ここに置く
+  runStep("bundle", "node scripts/check_bundle.mjs");
 } else {
   result.build = "skipped";
+  result.bundle = "skipped";
   console.log("  [skipped] build (--fast)");
 }
 
@@ -60,6 +64,7 @@ appendFileSync(
     lint: result.lint,
     test: result.test,
     build: result.build,
+    bundle: result.bundle,
     pass,
   }) + "\n",
 );

@@ -39,7 +39,7 @@ CER は劇的に下がるが、それは自分の答案を採点に混ぜてい�
 ```bash
 npm install
 npm run dev
-npm run verify        # typecheck + lint + test(coverage)+ build
+npm run verify        # typecheck + lint + test(coverage)+ build + bundle
 npm run cases         # 二実装照合のケースを Python 側で再生成
 npm run passages      # 課題文カタログを再選定(青空文庫コーパスが要る)
 ```
@@ -47,10 +47,28 @@ npm run passages      # 課題文カタログを再選定(青空文庫コーパ�
 - 仕様: [SPEC.md](SPEC.md) ／ テスト仕様: [TEST_SPEC.md](TEST_SPEC.md)
 - 作業規律: [AGENTS.md](AGENTS.md)
 
+## モデルと実行系
+
+| | 初回に落ちる量(実測 2026-08-29) |
+|---|---|
+| whisper-base(既定) | WebGPU 206 MB ／ WebAssembly 73 MB |
+| whisper-tiny | WebGPU 114 MB ／ WebAssembly 39 MB |
+
+日本語特化の `kotoba-whisper-v2.2-ONNX` は実在し transformers.js にも対応しているが、
+large-v3 蒸留でエンコーダが大きく、最小の組み合わせでも **534 MB** ある。
+初回に落とさせる量ではないので採らなかった（記録は `src/core/models.ts`）。
+
+実行系(ONNX Runtime の wasm)は**版を固定した CDN から取り、成果物には載せない**。
+webpack が黙って 23.6 MB を複製していたのを loop_002 で見つけて外した
+（成果物 25.0 MB → 1.41 MB）。`npm run verify` の `bundle` 段が現物を検査する。
+
 ## 状態
 
-loop_001 完了。計り方(正規化・整列・計量・音声前処理)とゲート、課題文 24 篇、
-打ち込みで照合する画面まで。**ブラウザ内 Whisper と録音は loop_002。**
+loop_002 完了。課題文 24 篇、計り方とゲート、ブラウザ内 Whisper、録音 UI まで。
+
+**ただし推論そのものは実ブラウザでしか確かめられない。** 型・境界・取得先・成果物は
+テストが縛るが、「実際に日本語を聞き取るか」はこのリポジトリの射程外である。
+公開前に人が読み上げて確かめる段が要る。
 
 ## ライセンス
 
