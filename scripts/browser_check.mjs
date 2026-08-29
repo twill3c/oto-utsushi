@@ -66,8 +66,12 @@ const server = createServer((req, res) => {
   createReadStream(path).pipe(res);
 });
 
-await new Promise((r) => server.listen(PORT, r));
-const origin = `http://localhost:${PORT}`;
+// BASE_URL を渡せば本番を直接検める。ローカルの out/ で緑でも、
+// 配信層でしか現れない故障がある(ヘッダ・Content-Type・リダイレクト)
+const remote = process.env.BASE_URL ?? null;
+if (remote === null) await new Promise((r) => server.listen(PORT, r));
+const origin = remote ?? `http://localhost:${PORT}`;
+console.log(`  対象 ${origin}${remote === null ? "(ローカルの out/)" : "(本番)"}`);
 
 /** WAV の頭から再生長を読む(16 bit PCM 前提) */
 function wavDurationSec(path) {
@@ -129,7 +133,7 @@ try {
   check("課題文が出る", passageText.includes("このあいびきは先年"));
   const options = await page.locator('select[aria-label="課題文"] option').count();
   check("課題文が全件えらべる", options === 24, `${options} 件`);
-  check("フッタが出る", (await page.locator("footer a").count()) === 3);
+  check("フッタが規約どおり 5 項目", (await page.locator("footer a").count()) === 5);
 
   // ---- 2. 押す前に量と実行系を言っているか
   const listener = (await page.textContent(".listener")) ?? "";
@@ -214,10 +218,10 @@ try {
 
   check("console エラーが無い", consoleErrors.length === 0, consoleErrors.slice(0, 2).join(" / "));
 
-  await page.screenshot({ path: ".loop/browser_check.png", fullPage: true });
+  await page.screenshot({ path: `.loop/browser_check${remote === null ? "" : "_prod"}.png`, fullPage: true });
   // 画面ぶんも撮る。fixed のフッタは fullPage だと本文の途中に写り込むので、
   // 「フッタが本文を隠していないか」は viewport の絵でしか見られない
-  await page.screenshot({ path: ".loop/browser_viewport.png" });
+  await page.screenshot({ path: `.loop/browser_viewport${remote === null ? "" : "_prod"}.png` });
 } catch (e) {
   const head = String(e.message).split(String.fromCharCode(10))[0];
   problems.push(`例外: ${head}`);
@@ -236,7 +240,7 @@ try {
   await page.screenshot({ path: ".loop/browser_check.png", fullPage: true }).catch(() => {});
 } finally {
   await browser.close();
-  server.close();
+  if (remote === null) server.close();
 }
 
 if (problems.length > 0) {
