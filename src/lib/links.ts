@@ -8,8 +8,11 @@ export interface FooterLink {
 
 export const REPO_URL = "https://github.com/twill3c/oto-utsushi";
 
+// 著作権表示はリンクの文言に含めず、MIT License の直後の地の文にする(規約の一部)。
+export const FOOTER_NOTICE = "© 2026 坂田哲朗";
+
 export const FOOTER_LINKS: readonly FooterLink[] = [
-  { label: "MIT License © 2026 坂田哲朗", href: `${REPO_URL}/blob/main/LICENSE` },
+  { label: "MIT License", href: `${REPO_URL}/blob/main/LICENSE` },
   { label: "GitHub", href: REPO_URL },
   {
     label: "音写ラボの読み方",

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FOOTER_LINKS } from "@/lib/links";
+import { FOOTER_LINKS, FOOTER_NOTICE } from "@/lib/links";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -24,6 +24,7 @@ export default function RootLayout({
               <a href={link.href} target="_blank" rel="noreferrer">
                 {link.label}
               </a>
+              {link.label === "MIT License" ? ` ${FOOTER_NOTICE}` : null}
             </span>
           ))}
         </footer>
